@@ -49,34 +49,34 @@ drop policy if exists "Allow invoice updates" on public.finance_invoice_checks;
 
 create policy "Allow local finance reads"
   on public.finance_transactions for select
-  using (true);
+  using (auth.role() = 'authenticated');
 
 create policy "Allow local finance inserts"
   on public.finance_transactions for insert
-  with check (true);
+  with check (auth.role() = 'authenticated');
 
 create policy "Allow local finance deletes"
   on public.finance_transactions for delete
-  using (true);
+  using (auth.role() = 'authenticated');
 
 create policy "Allow local finance updates"
   on public.finance_transactions for update
-  using (true)
-  with check (true);
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
 
 create policy "Allow invoice reads"
   on public.finance_invoice_checks for select
-  using (true);
+  using (auth.role() = 'authenticated');
 
 create policy "Allow invoice inserts"
   on public.finance_invoice_checks for insert
-  with check (true);
+  with check (auth.role() = 'authenticated');
 
 create policy "Allow invoice deletes"
   on public.finance_invoice_checks for delete
-  using (true);
+  using (auth.role() = 'authenticated');
 
 create policy "Allow invoice updates"
   on public.finance_invoice_checks for update
-  using (true)
-  with check (true);
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');

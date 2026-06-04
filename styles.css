@@ -51,6 +51,63 @@ select {
   margin: 0 auto;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.auth-screen {
+  display: grid;
+  min-height: 100vh;
+  padding: 28px;
+  place-items: center;
+}
+
+.auth-card {
+  display: grid;
+  gap: 16px;
+  width: min(430px, 100%);
+  padding: 30px;
+  background: linear-gradient(180deg, rgba(31, 41, 55, 0.98), rgba(25, 36, 52, 0.98));
+  border: 1px solid rgba(52, 211, 153, 0.24);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  text-align: left;
+}
+
+.auth-copy {
+  margin: -6px 0 4px;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.auth-card label {
+  display: grid;
+  gap: 8px;
+  color: #dbeafe;
+  font-weight: 800;
+}
+
+.auth-card .primary-button {
+  width: 100%;
+}
+
+.auth-message {
+  min-height: 22px;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.auth-message.error {
+  color: var(--danger);
+}
+
 .sidebar {
   display: grid;
   grid-template-columns: auto 1fr auto;

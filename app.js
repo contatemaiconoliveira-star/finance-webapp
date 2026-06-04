@@ -34,9 +34,16 @@ const state = {
   transactions: [],
   invoices: [],
   remoteReady: false,
+  session: null,
 };
 
 const els = {
+  authScreen: document.querySelector("#authScreen"),
+  loginForm: document.querySelector("#loginForm"),
+  authMessage: document.querySelector("#authMessage"),
+  logoutButton: document.querySelector("#logoutButton"),
+  sidebar: document.querySelector(".sidebar"),
+  appShell: document.querySelector(".app-shell"),
   monthSelect: document.querySelector("#monthSelect"),
   yearSelect: document.querySelector("#yearSelect"),
   incomeKpi: document.querySelector("#incomeKpi"),
@@ -150,16 +157,69 @@ function loadLocalFallback() {
   state.invoices = JSON.parse(localStorage.getItem("direction.invoices") || "[]").map(normalizeInvoice);
 }
 
+function saveSession(session) {
+  state.session = session;
+  localStorage.setItem("direction.supabaseSession", JSON.stringify(session));
+}
+
+function clearSession() {
+  state.session = null;
+  state.remoteReady = false;
+  state.transactions = [];
+  state.invoices = [];
+  localStorage.removeItem("direction.supabaseSession");
+}
+
+function loadSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem("direction.supabaseSession") || "null");
+    if (session?.access_token && session?.refresh_token) state.session = session;
+  } catch (error) {
+    clearSession();
+  }
+}
+
+function sessionExpiresSoon() {
+  if (!state.session?.expires_at) return false;
+  return state.session.expires_at * 1000 - Date.now() < 60000;
+}
+
 function supabaseHeaders(extra = {}) {
+  const token = state.session?.access_token || supabaseConfig.anonKey;
   return {
     apikey: supabaseConfig.anonKey,
-    Authorization: `Bearer ${supabaseConfig.anonKey}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
     ...extra,
   };
 }
 
+async function authRequest(path, body) {
+  const response = await fetch(`${supabaseConfig.url}/auth/v1/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseConfig.anonKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error_description || payload.msg || payload.message || "Nao foi possivel entrar.");
+  }
+  return payload;
+}
+
+async function refreshSessionIfNeeded() {
+  if (!state.session?.refresh_token || !sessionExpiresSoon()) return;
+  const session = await authRequest("token?grant_type=refresh_token", {
+    refresh_token: state.session.refresh_token,
+  });
+  saveSession(session);
+}
+
 async function supabaseRequest(path, options = {}) {
+  await refreshSessionIfNeeded();
   const response = await fetch(`${supabaseConfig.url}/rest/v1/${path}`, {
     ...options,
     headers: supabaseHeaders(options.headers),
@@ -235,13 +295,17 @@ async function loadRemote() {
 }
 
 async function loadData() {
-  loadLocalFallback();
+  if (!state.session?.access_token) {
+    state.remoteReady = false;
+    return;
+  }
   try {
     await loadRemote();
   } catch (error) {
     state.remoteReady = false;
-    els.storageStatus.textContent = "Modo local";
+    els.storageStatus.textContent = "Login sem sincronizar";
     console.warn("Supabase indisponivel:", error.message);
+    throw error;
   }
 }
 
@@ -998,7 +1062,66 @@ function updateInstallmentVisibility() {
   }
 }
 
+function showLogin(message = "") {
+  els.authScreen.hidden = false;
+  els.sidebar.hidden = true;
+  els.appShell.hidden = true;
+  els.authMessage.textContent = message;
+  els.authMessage.classList.toggle("error", Boolean(message));
+}
+
+function showApp() {
+  els.authScreen.hidden = true;
+  els.sidebar.hidden = false;
+  els.appShell.hidden = false;
+}
+
+async function login(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const email = String(form.get("email") || "").trim();
+  const password = String(form.get("password") || "");
+  if (!email || !password) return;
+
+  els.authMessage.textContent = "Entrando...";
+  els.authMessage.classList.remove("error");
+  els.loginForm.querySelector("button").disabled = true;
+
+  try {
+    const session = await authRequest("token?grant_type=password", { email, password });
+    saveSession(session);
+    els.loginForm.reset();
+    await loadData();
+    showApp();
+    updateSourceControls();
+    setInitialDates();
+    renderAll();
+  } catch (error) {
+    showLogin("E-mail ou senha nao autorizado.");
+    console.warn("Falha no login:", error.message);
+  } finally {
+    els.loginForm.querySelector("button").disabled = false;
+  }
+}
+
+async function logout() {
+  try {
+    if (state.session?.access_token) {
+      await fetch(`${supabaseConfig.url}/auth/v1/logout`, {
+        method: "POST",
+        headers: supabaseHeaders(),
+      });
+    }
+  } catch (error) {
+    console.warn("Falha ao encerrar sessao no Supabase:", error.message);
+  }
+  clearSession();
+  showLogin("Sessao encerrada.");
+}
+
 function bindEvents() {
+  els.loginForm.addEventListener("submit", login);
+  els.logoutButton.addEventListener("click", logout);
   els.monthSelect.addEventListener("change", updatePeriodFromControls);
   els.yearSelect.addEventListener("change", updatePeriodFromControls);
   document.querySelectorAll(".nav a").forEach((link) => {
@@ -1041,18 +1164,29 @@ function bindEvents() {
 }
 
 async function boot() {
-  await loadData();
   updateSourceControls();
   setInitialDates();
   bindEvents();
-  renderAll();
+  loadSession();
+  if (!state.session?.access_token) {
+    showLogin();
+    return;
+  }
+  try {
+    await loadData();
+    showApp();
+    renderAll();
+  } catch (error) {
+    console.warn("Sessao expirada ou invalida:", error.message);
+    clearSession();
+    showLogin("Entre novamente para acessar seus dados.");
+  }
 }
 
 boot().catch((error) => {
   console.error("Falha ao iniciar app:", error);
-  loadLocalFallback();
   updateSourceControls();
   setInitialDates();
   bindEvents();
-  renderAll();
+  showLogin("Entre para acessar o painel.");
 });

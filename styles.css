@@ -490,6 +490,10 @@ h2 {
   color: #60a5fa;
 }
 
+.personal-mode .expense-panel h2 {
+  color: var(--danger);
+}
+
 .expense-panel .primary-button {
   color: #450a0a;
   background: var(--danger);

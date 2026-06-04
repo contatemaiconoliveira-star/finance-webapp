@@ -81,8 +81,6 @@ const els = {
   searchInput: document.querySelector("#searchInput"),
   storageStatus: document.querySelector("#storageStatus"),
   exportButton: document.querySelector("#exportButton"),
-  seedButton: document.querySelector("#seedButton"),
-  clearButton: document.querySelector("#clearButton"),
   editDialog: document.querySelector("#editDialog"),
   editForm: document.querySelector("#editForm"),
   closeEditButton: document.querySelector("#closeEditButton"),
@@ -1167,8 +1165,6 @@ function bindEvents() {
   document.addEventListener("click", handleChartClick);
   document.addEventListener("keydown", handleEditKey);
   els.exportButton.addEventListener("click", exportData);
-  els.seedButton.addEventListener("click", loadSeedData);
-  els.clearButton.addEventListener("click", clearData);
 }
 
 async function boot() {

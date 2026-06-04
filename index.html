@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Direcao Financeira</title>
+    <meta
+      name="description"
+      content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
+    />
+    <link rel="stylesheet" href="styles.css?v=20260603-personal-installments" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Navegacao principal">
+      <div class="brand">
+        <span class="brand-mark">R$</span>
+        <div>
+          <strong>Painel Financeiro</strong>
+          <small>Gestao estrategica</small>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#painel" class="active" data-nav="painel">Painel</a>
+        <a href="#lancamentos" data-nav="lancamentos">Lancamentos</a>
+        <a href="#faturas" data-nav="faturas" hidden>Faturas</a>
+        <a href="#configuracoes" data-nav="configuracoes">Dados</a>
+      </nav>
+
+      <div class="sync-card">
+        <span id="storageStatus">Modo local</span>
+        <button class="ghost-button" type="button" id="exportButton">Exportar JSON</button>
+      </div>
+    </aside>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Direcao estrategica</p>
+          <h1>Painel Financeiro</h1>
+          <p class="topbar-copy">Controle simples das suas financas pessoais e empresariais</p>
+        </div>
+      </header>
+
+      <section class="period-card" aria-label="Periodo de referencia">
+        <h2>Periodo de Referencia</h2>
+        <div class="period-fields">
+          <label>
+            Mes
+            <select id="monthSelect" aria-label="Selecionar mes"></select>
+          </label>
+          <label>
+            Ano
+            <select id="yearSelect" aria-label="Selecionar ano"></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="mode-strip" aria-label="Selecionar visao">
+        <button class="mode-button active" type="button" data-view="business">
+          <span>Estrategica</span>
+          <strong>Empresa</strong>
+        </button>
+        <button class="mode-button" type="button" data-view="personal">
+          <span>Vida</span>
+          <strong>Pessoal</strong>
+        </button>
+      </section>
+
+      <section id="painel" class="view-section">
+        <div class="kpi-grid">
+          <article class="kpi">
+            <span>Entradas do mes</span>
+            <strong id="incomeKpi">R$ 0,00</strong>
+          </article>
+          <article class="kpi danger">
+            <span>Saidas do mes</span>
+            <strong id="expenseKpi">R$ 0,00</strong>
+          </article>
+          <article class="kpi">
+            <span>Saldo macro</span>
+            <strong id="balanceKpi">R$ 0,00</strong>
+          </article>
+          <article class="kpi warning">
+            <span id="focusLabel">Foco</span>
+            <strong id="focusKpi">0%</strong>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="left-stack">
+            <section class="panel entry-panel" aria-labelledby="entryTitle">
+              <div class="panel-heading">
+                <div>
+                  <h2 id="entryTitle">ENTRADA</h2>
+                </div>
+                <div class="quick-source">
+                  <label>
+                    Origem
+                    <select id="quickSource" aria-label="Origem padrao de entrada">
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <form id="quickForm" class="quick-form" data-kind="income" data-scope="business">
+                <input
+                  name="quick"
+                  autocomplete="off"
+                  placeholder="100 venda"
+                  aria-label="Lancamento rapido de entrada: valor e descricao"
+                />
+              </form>
+
+              <form id="transactionForm" class="form-grid" data-kind="income" data-scope="business">
+                <label>
+                  Data
+                  <input name="date" type="date" />
+                </label>
+                <label>
+                  Valor
+                  <input name="amount" required inputmode="decimal" placeholder="349,29" />
+                </label>
+                <label class="wide">
+                  Descricao ou tag
+                  <input name="description" required placeholder="Venda, mentoria, asaas" />
+                </label>
+                <label class="wide">
+                  Origem
+                  <select name="source">
+                  </select>
+                </label>
+                <button class="primary-button wide" type="submit">Salvar entrada</button>
+              </form>
+            </section>
+
+            <section class="panel entry-panel expense-panel" aria-labelledby="expenseTitle">
+              <div class="panel-heading">
+                <div>
+                  <h2 id="expenseTitle">SAIDA</h2>
+                </div>
+                <div class="quick-source">
+                  <label>
+                    Origem
+                    <select id="expenseQuickSource" aria-label="Origem padrao de saida">
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <form id="expenseQuickForm" class="quick-form" data-kind="expense" data-scope="business">
+                <input
+                  name="quick"
+                  autocomplete="off"
+                  placeholder="100 marketing"
+                  aria-label="Lancamento rapido de saida: valor e descricao"
+                />
+              </form>
+
+              <form id="expenseTransactionForm" class="form-grid" data-kind="expense" data-scope="business">
+                <label>
+                  Data
+                  <input name="date" type="date" />
+                </label>
+                <label>
+                  Valor
+                  <input name="amount" required inputmode="decimal" placeholder="100,00" />
+                </label>
+                <label class="wide">
+                  Descricao ou tag
+                  <input name="description" required placeholder="Marketing, software, supermercado" />
+                </label>
+                <label class="wide">
+                  Origem
+                  <select name="source">
+                  </select>
+                </label>
+                <div id="installmentPanel" class="installment-panel wide" hidden>
+                  <label class="check-row">
+                    <input name="isInstallment" type="checkbox" />
+                    <span>Compra parcelada</span>
+                  </label>
+                  <div class="installment-fields" hidden>
+                    <label>
+                      Total da compra
+                      <input name="installmentTotal" inputmode="decimal" placeholder="349,29" />
+                    </label>
+                    <label>
+                      Parcelas
+                      <input name="installmentCount" inputmode="numeric" min="2" type="number" placeholder="6" />
+                    </label>
+                  </div>
+                </div>
+                <button class="primary-button wide" type="submit">Salvar saida</button>
+              </form>
+            </section>
+          </div>
+
+          <section class="panel summary-panel" aria-labelledby="viewTitle" hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow" id="viewEyebrow">Empresa no mes civil</p>
+                <h2 id="viewTitle">Visao Estrategica</h2>
+              </div>
+              <select id="sourceFilter" aria-label="Filtrar por origem">
+                <option value="all">Todas as origens</option>
+              </select>
+            </div>
+            <div id="directionCards" class="direction-grid"></div>
+            <div id="transactionsList" class="transaction-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="lancamentos" class="view-section">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Base unica</p>
+              <h2>Todos os lancamentos</h2>
+            </div>
+            <input id="searchInput" class="search-input" placeholder="Buscar tag, descricao ou origem" />
+          </div>
+          <div id="allTransactionsList" class="transaction-list large"></div>
+          <div class="charts-section" aria-label="Graficos do mes por origem">
+            <article class="chart-card">
+              <div class="chart-heading">
+                <p class="eyebrow">Entradas por origem</p>
+                <strong id="incomeChartTotal">R$ 0,00</strong>
+              </div>
+              <div class="pie-layout">
+                <div id="incomePie" class="pie-chart" role="img" aria-label="Grafico de entradas por origem"></div>
+                <div id="incomeChartLegend" class="chart-legend"></div>
+              </div>
+            </article>
+            <article class="chart-card expense-chart-card">
+              <div class="chart-heading">
+                <p class="eyebrow">Saidas por origem</p>
+                <strong id="expenseChartTotal">R$ 0,00</strong>
+              </div>
+              <div class="pie-layout">
+                <div id="expensePie" class="pie-chart" role="img" aria-label="Grafico de saidas por origem"></div>
+                <div id="expenseChartLegend" class="chart-legend"></div>
+              </div>
+            </article>
+          </div>
+          <div class="monthly-breakdown" aria-label="Listas separadas do mes">
+            <article class="breakdown-card">
+              <div class="chart-heading">
+                <div>
+                  <p class="eyebrow">Entradas do mes</p>
+                  <h2>Entradas listadas</h2>
+                </div>
+                <strong id="incomeListTotal">R$ 0,00</strong>
+              </div>
+              <div id="incomeTransactionsList" class="transaction-list compact-list"></div>
+            </article>
+            <article class="breakdown-card expense-breakdown-card">
+              <div class="chart-heading">
+                <div>
+                  <p class="eyebrow">Gastos do mes</p>
+                  <h2>Saidas listadas</h2>
+                </div>
+                <strong id="expenseListTotal">R$ 0,00</strong>
+              </div>
+              <div id="expenseTransactionsList" class="transaction-list compact-list"></div>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section id="faturas" class="view-section" hidden>
+        <div class="dashboard-grid invoice-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Consulta simples</p>
+                <h2>Nova fatura</h2>
+              </div>
+            </div>
+            <form id="invoiceForm" class="form-grid" data-scope="business">
+              <label>
+                Origem
+                <select name="source">
+                </select>
+              </label>
+              <label>
+                Valor total da fatura
+                <input name="total" required inputmode="decimal" placeholder="2500,00" />
+              </label>
+              <label>
+                Vencimento
+                <input name="dueDate" required type="date" />
+              </label>
+              <button class="primary-button wide" type="submit">Consultar fatura</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Sem reconciliacao</p>
+                <h2>Saldo a lancar</h2>
+              </div>
+            </div>
+            <div id="invoiceSummary" class="invoice-summary"></div>
+            <div id="invoiceList" class="transaction-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="configuracoes" class="view-section">
+        <section class="panel config-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Portabilidade</p>
+              <h2>Dados locais</h2>
+            </div>
+          </div>
+          <p class="muted">
+            O app usa uma unica tabela de transacoes no navegador. A exportacao gera um JSON com transacoes e faturas para backup.
+          </p>
+          <div class="data-actions">
+            <button class="ghost-button" type="button" id="seedButton">Carregar exemplo</button>
+            <button class="ghost-button danger-button" type="button" id="clearButton">Limpar dados locais</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="editDialog" class="edit-dialog" aria-labelledby="editTitle">
+      <form id="editForm" class="edit-card">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Editar lancamento</p>
+            <h2 id="editTitle">Ajustar registro</h2>
+          </div>
+          <button class="icon-button" type="button" id="closeEditButton" aria-label="Fechar">x</button>
+        </div>
+        <input type="hidden" name="id" />
+        <div class="form-grid">
+          <label>
+            Data
+            <input name="date" type="date" required />
+          </label>
+          <label>
+            Valor
+            <input name="amount" required inputmode="decimal" />
+          </label>
+          <label class="wide">
+            Descricao ou tag
+            <input name="description" required />
+          </label>
+          <label>
+            Tipo
+            <select name="kind">
+              <option value="income">Entrada</option>
+              <option value="expense">Saida</option>
+            </select>
+          </label>
+          <label>
+            Contexto
+            <select name="scope">
+              <option value="business">Empresa</option>
+              <option value="personal">Pessoal</option>
+            </select>
+          </label>
+          <label>
+            Origem
+            <select name="source"></select>
+          </label>
+        </div>
+        <div class="edit-actions">
+          <button class="ghost-button" type="button" id="cancelEditButton">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar alteracao</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js?v=20260604-supabase-sync"></script>
+  </body>
+</html>

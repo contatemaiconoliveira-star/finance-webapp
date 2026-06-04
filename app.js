@@ -658,6 +658,8 @@ function renderAll() {
   syncPeriodControls();
   document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === state.view));
   const scope = activeScope();
+  document.body.classList.toggle("scope-personal", scope === "personal");
+  document.body.classList.toggle("scope-business", scope === "business");
   els.quickForm.dataset.scope = scope;
   els.transactionForm.dataset.scope = scope;
   els.expenseQuickForm.dataset.scope = scope;

@@ -58,32 +58,62 @@ select {
 .auth-screen {
   display: grid;
   min-height: 100vh;
-  padding: 28px;
+  padding: 32px;
   place-items: center;
 }
 
-.auth-card {
+.auth-wrap {
   display: grid;
-  gap: 16px;
-  width: min(430px, 100%);
-  padding: 30px;
-  background: linear-gradient(180deg, rgba(31, 41, 55, 0.98), rgba(25, 36, 52, 0.98));
-  border: 1px solid rgba(52, 211, 153, 0.24);
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  width: min(980px, 100%);
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(31, 41, 55, 0.96), rgba(18, 28, 43, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 8px;
   box-shadow: var(--shadow);
 }
 
-.auth-card h1 {
+.auth-brand-panel,
+.auth-card {
+  display: grid;
+  align-content: center;
+  padding: clamp(28px, 5vw, 54px);
+}
+
+.auth-brand-panel {
+  min-height: 520px;
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(37, 99, 235, 0.12)),
+    radial-gradient(circle at 20% 15%, rgba(52, 211, 153, 0.24), transparent 18rem);
+  border-right: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.auth-mark {
+  margin-bottom: 36px;
+}
+
+.auth-brand-panel h1 {
   max-width: none;
   margin: 0;
-  font-size: clamp(2rem, 8vw, 2.8rem);
+  font-size: clamp(2.35rem, 5vw, 4.1rem);
   text-align: left;
 }
 
 .auth-copy {
-  margin: -6px 0 4px;
+  max-width: 440px;
+  margin: 18px 0 0;
   color: #cbd5e1;
+  font-size: 1.02rem;
   line-height: 1.5;
+}
+
+.auth-card {
+  gap: 18px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.auth-card h2 {
+  font-size: 1.65rem;
 }
 
 .auth-card label {
@@ -891,6 +921,21 @@ select:focus {
   .sidebar,
   .app-shell {
     width: min(100% - 28px, 760px);
+  }
+
+  .auth-wrap {
+    grid-template-columns: 1fr;
+    width: min(620px, 100%);
+  }
+
+  .auth-brand-panel {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .auth-mark {
+    margin-bottom: 22px;
   }
 
   .sidebar {

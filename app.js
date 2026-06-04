@@ -51,6 +51,15 @@ const els = {
   balanceKpi: document.querySelector("#balanceKpi"),
   focusLabel: document.querySelector("#focusLabel"),
   focusKpi: document.querySelector("#focusKpi"),
+  businessYearPanel: document.querySelector("#businessYearPanel"),
+  businessYearLabel: document.querySelector("#businessYearLabel"),
+  topIncomeMonth: document.querySelector("#topIncomeMonth"),
+  topIncomeValue: document.querySelector("#topIncomeValue"),
+  topExpenseMonth: document.querySelector("#topExpenseMonth"),
+  topExpenseValue: document.querySelector("#topExpenseValue"),
+  topBalanceMonth: document.querySelector("#topBalanceMonth"),
+  topBalanceValue: document.querySelector("#topBalanceValue"),
+  yearBars: document.querySelector("#yearBars"),
   scopeBanner: document.querySelector("#scopeBanner"),
   viewEyebrow: document.querySelector("#viewEyebrow"),
   viewTitle: document.querySelector("#viewTitle"),
@@ -431,6 +440,86 @@ function renderKpis(items) {
   els.focusKpi.className = scope === "business" && burnRate < 0 ? "negative" : "";
 }
 
+function selectedYear() {
+  return state.month.getFullYear();
+}
+
+function monthShortName(index) {
+  const raw = monthNames[index] || "";
+  return raw.charAt(0).toUpperCase() + raw.slice(1, 3);
+}
+
+function bestMonth(months, key, mode = "max") {
+  const activeMonths = months.filter((month) => month[key] > 0 || key === "balance");
+  if (!activeMonths.length) return null;
+  return activeMonths.reduce((best, month) => {
+    if (!best) return month;
+    return mode === "min" ? (month[key] < best[key] ? month : best) : (month[key] > best[key] ? month : best);
+  }, null);
+}
+
+function renderBusinessYearPanel() {
+  const scope = activeScope();
+  els.businessYearPanel.hidden = scope !== "business";
+  if (scope !== "business") return;
+
+  const year = selectedYear();
+  const businessItems = state.transactions
+    .filter((item) => belongsToScope(item, "business"))
+    .filter((item) => new Date(`${item.date}T12:00:00`).getFullYear() === year);
+
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const items = businessItems.filter((item) => new Date(`${item.date}T12:00:00`).getMonth() === index);
+    const summary = totals(items);
+    return {
+      index,
+      label: monthNames[index],
+      shortLabel: monthShortName(index),
+      income: summary.income,
+      expenses: summary.expenses,
+      balance: summary.balance,
+    };
+  });
+
+  const topIncome = bestMonth(months, "income");
+  const topExpense = bestMonth(months, "expenses");
+  const topBalance = businessItems.length ? bestMonth(months, "balance") : null;
+  const maxValue = Math.max(...months.flatMap((month) => [month.income, month.expenses]), 1);
+
+  els.businessYearLabel.textContent = String(year);
+  els.topIncomeMonth.textContent = topIncome ? topIncome.label : "Sem dados";
+  els.topIncomeValue.textContent = brl.format(topIncome?.income || 0);
+  els.topExpenseMonth.textContent = topExpense ? topExpense.label : "Sem dados";
+  els.topExpenseValue.textContent = brl.format(topExpense?.expenses || 0);
+  els.topBalanceMonth.textContent = topBalance ? topBalance.label : "Sem dados";
+  els.topBalanceValue.textContent = brl.format(topBalance?.balance || 0);
+
+  els.yearBars.innerHTML = months
+    .map((month) => {
+      const incomeWidth = Math.max((month.income / maxValue) * 100, month.income ? 3 : 0);
+      const expenseWidth = Math.max((month.expenses / maxValue) * 100, month.expenses ? 3 : 0);
+      const isTopIncome = topIncome?.index === month.index;
+      const isTopExpense = topExpense?.index === month.index;
+      return `
+        <article class="year-row ${isTopIncome ? "top-income-row" : ""} ${isTopExpense ? "top-expense-row" : ""}">
+          <div class="year-month">${month.shortLabel}</div>
+          <div class="year-bar-stack">
+            <div class="year-bar-line">
+              <span class="year-bar income-bar" style="width:${incomeWidth}%"></span>
+              <strong>${brl.format(month.income)}</strong>
+            </div>
+            <div class="year-bar-line">
+              <span class="year-bar expense-bar" style="width:${expenseWidth}%"></span>
+              <strong>${brl.format(month.expenses)}</strong>
+            </div>
+          </div>
+          <div class="year-balance ${month.balance < 0 ? "negative" : ""}">${brl.format(month.balance)}</div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function renderDirection(items) {
   const grouped = groupExpensesByDescription(items);
   const summary = totals(items);
@@ -675,6 +764,7 @@ function renderAll() {
   updateSourceControls();
   const items = currentScopeItems();
   renderKpis(items);
+  renderBusinessYearPanel();
   renderDirection(items);
   renderTransactions(els.transactionsList, items, "Sem lancamentos nesta visao.");
   renderAllTransactions();

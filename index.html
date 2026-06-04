@@ -8,7 +8,7 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260604-personal-expense-red" />
+    <link rel="stylesheet" href="styles.css?v=20260604-business-year-xray" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
@@ -118,6 +118,34 @@
             <strong id="focusKpi">0%</strong>
           </article>
         </div>
+
+        <section id="businessYearPanel" class="panel year-panel" aria-labelledby="businessYearTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Raio-X do Ano</p>
+              <h2 id="businessYearTitle">Desempenho anual da empresa</h2>
+            </div>
+            <strong id="businessYearLabel" class="year-label">2026</strong>
+          </div>
+          <div class="year-highlight-grid">
+            <article class="year-highlight income-highlight">
+              <span>Mes que mais faturou</span>
+              <strong id="topIncomeMonth">Sem dados</strong>
+              <small id="topIncomeValue">R$ 0,00</small>
+            </article>
+            <article class="year-highlight expense-highlight">
+              <span>Mes que mais gastou</span>
+              <strong id="topExpenseMonth">Sem dados</strong>
+              <small id="topExpenseValue">R$ 0,00</small>
+            </article>
+            <article class="year-highlight balance-highlight">
+              <span>Melhor saldo do ano</span>
+              <strong id="topBalanceMonth">Sem dados</strong>
+              <small id="topBalanceValue">R$ 0,00</small>
+            </article>
+          </div>
+          <div id="yearBars" class="year-bars" aria-label="Comparativo anual por mes"></div>
+        </section>
 
         <div class="dashboard-grid">
           <div class="left-stack">
@@ -392,6 +420,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=20260604-personal-expense-red"></script>
+    <script src="app.js?v=20260604-business-year-xray"></script>
   </body>
 </html>

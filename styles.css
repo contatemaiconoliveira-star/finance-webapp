@@ -285,6 +285,48 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+.period-card,
+.kpi,
+.panel,
+.mode-button,
+.chart-card,
+.breakdown-card,
+.year-highlight,
+.year-row,
+.transaction-row,
+.primary-button,
+.ghost-button,
+.icon-button,
+.legend-row {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+}
+
+.period-card:hover,
+.kpi:hover,
+.panel:hover,
+.chart-card:hover,
+.breakdown-card:hover,
+.year-highlight:hover {
+  transform: translateY(-2px);
+  border-color: rgba(52, 211, 153, 0.34);
+  box-shadow: 0 28px 72px rgba(2, 6, 23, 0.38);
+}
+
+.personal-mode .period-card:hover,
+.personal-mode .kpi:hover,
+.personal-mode .panel:hover,
+.personal-mode .chart-card:hover,
+.personal-mode .breakdown-card:hover,
+.personal-mode .year-highlight:hover {
+  border-color: rgba(96, 165, 250, 0.38);
+  box-shadow: 0 28px 72px rgba(37, 99, 235, 0.18);
+}
+
 .period-card {
   display: flex;
   gap: 18px;
@@ -354,6 +396,21 @@ h2 {
 
 .personal-mode .mode-button.active span {
   color: #dbeafe;
+}
+
+.mode-button:hover,
+.primary-button:hover,
+.ghost-button:hover,
+.icon-button:hover,
+.legend-row:hover,
+.year-row:hover,
+.transaction-row:hover {
+  transform: translateY(-1px);
+}
+
+.mode-button:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(31, 41, 55, 0.92);
 }
 
 .view-section {
@@ -876,6 +933,7 @@ select:focus {
 }
 
 .transaction-row:hover {
+  transform: translateY(-1px);
   border-color: rgba(52, 211, 153, 0.34);
   background: rgba(15, 23, 42, 0.74);
 }
@@ -1283,5 +1341,32 @@ select:focus {
 
   .icon-button {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .period-card:hover,
+  .kpi:hover,
+  .panel:hover,
+  .chart-card:hover,
+  .breakdown-card:hover,
+  .year-highlight:hover,
+  .mode-button:hover,
+  .primary-button:hover,
+  .ghost-button:hover,
+  .icon-button:hover,
+  .legend-row:hover,
+  .year-row:hover,
+  .transaction-row:hover {
+    transform: none;
   }
 }

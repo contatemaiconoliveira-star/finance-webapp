@@ -51,6 +51,7 @@ const els = {
   balanceKpi: document.querySelector("#balanceKpi"),
   focusLabel: document.querySelector("#focusLabel"),
   focusKpi: document.querySelector("#focusKpi"),
+  scopeBanner: document.querySelector("#scopeBanner"),
   viewEyebrow: document.querySelector("#viewEyebrow"),
   viewTitle: document.querySelector("#viewTitle"),
   transactionForm: document.querySelector("#transactionForm"),
@@ -658,6 +659,13 @@ function renderAll() {
   syncPeriodControls();
   document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === state.view));
   const scope = activeScope();
+  document.body.classList.toggle("business-mode", scope === "business");
+  document.body.classList.toggle("personal-mode", scope === "personal");
+  els.scopeBanner.classList.toggle("business-banner", scope === "business");
+  els.scopeBanner.classList.toggle("personal-banner", scope === "personal");
+  els.scopeBanner.innerHTML = scope === "business"
+    ? "<span>Visao ativa</span><strong>Voce esta lancando em: Empresa</strong>"
+    : "<span>Visao ativa</span><strong>Voce esta lancando em: Pessoal</strong>";
   els.quickForm.dataset.scope = scope;
   els.transactionForm.dataset.scope = scope;
   els.expenseQuickForm.dataset.scope = scope;

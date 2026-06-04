@@ -30,7 +30,7 @@ Faturas:
 
 ## Como usar
 
-Abra `index.html` no navegador. O app salva tudo no `localStorage`.
+Abra `index.html` no navegador. O app exige login pelo Supabase Auth antes de mostrar o painel.
 
 Para lancar rapido, digite algo como:
 
@@ -44,4 +44,12 @@ O app assume a data de hoje, usa a visao atual como Pessoal/Empresa, usa a orige
 
 O app esta configurado para sincronizar com o projeto Supabase `ezaehjggbgapbeyceinb`.
 
-Antes de usar a sincronizacao, abra o SQL Editor do Supabase, cole o conteudo de `schema.sql` e execute. O app tenta carregar do Supabase ao abrir; se a tabela ainda nao existir ou a conexao falhar, ele continua funcionando em `localStorage`.
+Antes de usar a sincronizacao, abra o SQL Editor do Supabase, cole o conteudo de `schema.sql` e execute. O `schema.sql` cria as tabelas e aplica politicas de RLS que permitem leitura e escrita apenas para usuarios autenticados.
+
+Para liberar acesso:
+
+1. No Supabase, abra `Authentication`.
+2. Crie ou convide os usuarios autorizados por e-mail.
+3. Use o e-mail e senha desse usuario na tela de login do WebApp.
+
+Nao existe cadastro publico no WebApp. Quem nao tiver usuario criado no Supabase nao entra.

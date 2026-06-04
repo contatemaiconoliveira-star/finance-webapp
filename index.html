@@ -8,7 +8,7 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260604-scope-cues" />
+    <link rel="stylesheet" href="styles.css?v=20260604-clean-header" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
@@ -52,7 +52,6 @@
         <a href="#painel" class="active" data-nav="painel">Painel</a>
         <a href="#lancamentos" data-nav="lancamentos">Lancamentos</a>
         <a href="#faturas" data-nav="faturas" hidden>Faturas</a>
-        <a href="#configuracoes" data-nav="configuracoes">Dados</a>
       </nav>
 
       <div class="sync-card">
@@ -65,9 +64,8 @@
     <main class="app-shell" hidden>
       <header class="topbar">
         <div>
-          <p class="eyebrow">Direcao estrategica</p>
           <h1>Painel Financeiro</h1>
-          <p class="topbar-copy">Controle simples das suas financas pessoais e empresariais</p>
+          <p class="topbar-copy">Rumo a Liberdade Financeira</p>
         </div>
       </header>
 
@@ -343,23 +341,6 @@
         </div>
       </section>
 
-      <section id="configuracoes" class="view-section">
-        <section class="panel config-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Portabilidade</p>
-              <h2>Dados locais</h2>
-            </div>
-          </div>
-          <p class="muted">
-            O app usa uma unica tabela de transacoes no navegador. A exportacao gera um JSON com transacoes e faturas para backup.
-          </p>
-          <div class="data-actions">
-            <button class="ghost-button" type="button" id="seedButton">Carregar exemplo</button>
-            <button class="ghost-button danger-button" type="button" id="clearButton">Limpar dados locais</button>
-          </div>
-        </section>
-      </section>
     </main>
 
     <dialog id="editDialog" class="edit-dialog" aria-labelledby="editTitle">
@@ -411,6 +392,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=20260604-scope-cues"></script>
+    <script src="app.js?v=20260604-clean-header"></script>
   </body>
 </html>

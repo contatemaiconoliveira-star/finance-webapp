@@ -8,25 +8,35 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260603-personal-installments" />
+    <link rel="stylesheet" href="styles.css?v=20260604-auth-polish" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
-      <form id="loginForm" class="auth-card">
-        <p class="eyebrow">Acesso restrito</p>
-        <h1 id="authTitle">Painel Financeiro</h1>
-        <p class="auth-copy">Entre com o e-mail e senha liberados no Supabase.</p>
-        <label>
-          E-mail
-          <input name="email" type="email" autocomplete="email" required placeholder="seu@email.com" />
-        </label>
-        <label>
-          Senha
-          <input name="password" type="password" autocomplete="current-password" required placeholder="Sua senha" />
-        </label>
-        <button class="primary-button" type="submit">Entrar</button>
-        <p id="authMessage" class="auth-message" role="status"></p>
-      </form>
+      <div class="auth-wrap">
+        <div class="auth-brand-panel">
+          <span class="brand-mark auth-mark">R$</span>
+          <p class="eyebrow">Acesso restrito</p>
+          <h1 id="authTitle">Painel Financeiro</h1>
+          <p class="auth-copy">Gestao estrategica das suas financas pessoais e empresariais, protegida por login.</p>
+        </div>
+
+        <form id="loginForm" class="auth-card">
+          <div>
+            <p class="eyebrow">Entrar</p>
+            <h2>Acesse sua conta</h2>
+          </div>
+          <label>
+            E-mail
+            <input name="email" type="email" autocomplete="email" required placeholder="seu@email.com" />
+          </label>
+          <label>
+            Senha
+            <input name="password" type="password" autocomplete="current-password" required placeholder="Sua senha" />
+          </label>
+          <button class="primary-button" type="submit">Entrar</button>
+          <p id="authMessage" class="auth-message" role="status"></p>
+        </form>
+      </div>
     </section>
 
     <aside class="sidebar" aria-label="Navegacao principal" hidden>

@@ -858,8 +858,7 @@ function createTransaction(event) {
       installment_total: total,
     }));
     addTransactions(records);
-    event.currentTarget.reset();
-    setInitialDates();
+    resetEntryForms();
     return;
   }
 
@@ -871,8 +870,7 @@ function createTransaction(event) {
     source: form.get("source"),
     kind,
   });
-  event.currentTarget.reset();
-  setInitialDates();
+  resetEntryForms();
 }
 
 function createQuickTransaction(event) {
@@ -891,7 +889,7 @@ function createQuickTransaction(event) {
     source,
     kind: event.currentTarget.dataset.kind || "expense",
   });
-  input.value = "";
+  resetEntryForms();
   input.focus();
 }
 
@@ -1085,6 +1083,25 @@ function setInitialDates() {
   updateInstallmentVisibility();
 }
 
+function resetEntryForms() {
+  els.quickForm.reset();
+  els.expenseQuickForm.reset();
+  els.transactionForm.reset();
+  els.expenseTransactionForm.reset();
+
+  if (els.quickSource.options.length) els.quickSource.selectedIndex = 0;
+  if (els.expenseQuickSource.options.length) els.expenseQuickSource.selectedIndex = 0;
+
+  els.transactionForm.elements.date.value = todayISO();
+  els.expenseTransactionForm.elements.date.value = todayISO();
+  els.expenseTransactionForm.elements.isInstallment.checked = false;
+  els.expenseTransactionForm.elements.installmentTotal.value = "";
+  els.expenseTransactionForm.elements.installmentCount.value = "";
+
+  syncSourceDefaults();
+  updateInstallmentVisibility();
+}
+
 function syncPeriodControls() {
   if (!els.monthSelect.options.length) {
     els.monthSelect.innerHTML = monthNames
@@ -1106,6 +1123,7 @@ function syncPeriodControls() {
 function updatePeriodFromControls() {
   state.month = new Date(Number(els.yearSelect.value), Number(els.monthSelect.value), 1);
   renderAll();
+  resetEntryForms();
 }
 
 function optionHtml(options, selectedValue) {

@@ -5,6 +5,7 @@ create table if not exists public.finance_transactions (
   description text not null,
   scope text not null check (scope in ('personal', 'business')),
   source text not null,
+  product text,
   kind text not null default 'expense' check (kind in ('expense', 'income')),
   installment_id uuid,
   installment_number integer,
@@ -33,7 +34,8 @@ alter table public.finance_transactions
   add column if not exists installment_id uuid,
   add column if not exists installment_number integer,
   add column if not exists installment_count integer,
-  add column if not exists installment_total numeric(12, 2);
+  add column if not exists installment_total numeric(12, 2),
+  add column if not exists product text;
 
 alter table public.finance_transactions enable row level security;
 alter table public.finance_invoice_checks enable row level security;

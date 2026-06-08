@@ -23,6 +23,8 @@ const sourceOptions = [
   ]),
 ];
 
+const productOptions = ["Mentoria individual", "Desafio Sou Segura", "Amor Seguro", "Dignas"];
+
 const supabaseConfig = {
   url: "https://ezaehjggbgapbeyceinb.supabase.co",
   anonKey: "sb_publishable_HGWRPacMNINT6csFphH2yw_ZD6FrsJe",
@@ -64,6 +66,8 @@ const els = {
   viewEyebrow: document.querySelector("#viewEyebrow"),
   viewTitle: document.querySelector("#viewTitle"),
   transactionForm: document.querySelector("#transactionForm"),
+  productField: document.querySelector("#productField"),
+  entryProduct: document.querySelector("#entryProduct"),
   expenseTransactionForm: document.querySelector("#expenseTransactionForm"),
   quickForm: document.querySelector("#quickForm"),
   expenseQuickForm: document.querySelector("#expenseQuickForm"),
@@ -77,10 +81,14 @@ const els = {
   invoiceList: document.querySelector("#invoiceList"),
   incomePie: document.querySelector("#incomePie"),
   expensePie: document.querySelector("#expensePie"),
+  productPie: document.querySelector("#productPie"),
+  productChartCard: document.querySelector("#productChartCard"),
   incomeChartLegend: document.querySelector("#incomeChartLegend"),
   expenseChartLegend: document.querySelector("#expenseChartLegend"),
+  productChartLegend: document.querySelector("#productChartLegend"),
   incomeChartTotal: document.querySelector("#incomeChartTotal"),
   expenseChartTotal: document.querySelector("#expenseChartTotal"),
+  productChartTotal: document.querySelector("#productChartTotal"),
   incomeTransactionsList: document.querySelector("#incomeTransactionsList"),
   expenseTransactionsList: document.querySelector("#expenseTransactionsList"),
   incomeListTotal: document.querySelector("#incomeListTotal"),
@@ -104,6 +112,7 @@ const monthNames = Array.from({ length: 12 }, (_, index) =>
 );
 const incomeChartColors = ["#34d399", "#60a5fa", "#22d3ee", "#a78bfa", "#fbbf24", "#4ade80"];
 const expenseChartColors = ["#ef4444", "#f97316", "#ec4899", "#7f1d1d", "#facc15", "#be123c"];
+const productChartColors = ["#34d399", "#60a5fa", "#a78bfa", "#fbbf24", "#22d3ee"];
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -248,6 +257,7 @@ function toDbTransaction(item) {
     description: item.description,
     scope: item.scope,
     source: item.source,
+    product: item.product,
     kind: item.kind,
     installment_id: item.installment_id,
     installment_number: item.installment_number,
@@ -265,6 +275,7 @@ function fromDbTransaction(item) {
     description: item.description,
     scope: item.scope,
     source: item.source,
+    product: item.product,
     kind: item.kind,
     installment_id: item.installment_id,
     installment_number: item.installment_number,
@@ -372,6 +383,7 @@ function normalizeTransaction(item) {
     description: item.description || item.category || "Sem descricao",
     scope,
     source,
+    product: item.product || null,
     kind,
     installment_id: item.installment_id || null,
     installment_number: Number(item.installment_number) || null,
@@ -556,12 +568,14 @@ function renderDirection(items) {
 }
 
 function transactionSubtitle(item) {
-  return [
+  const parts = [
     dateFmt.format(new Date(`${item.date}T12:00:00`)),
     scopeLabel(item.scope),
     item.source,
+    item.product,
     kindLabel(item.kind),
-  ].join(" | ");
+  ].filter(Boolean);
+  return parts.join(" | ");
 }
 
 function renderTransactions(container, items, emptyText = "Nenhum lancamento encontrado.") {
@@ -590,7 +604,7 @@ function renderAllTransactions() {
   const items = state.transactions
     .filter((item) => belongsToScope(item, scope))
     .filter((item) => monthKey(item.date) === activeMonthKey())
-    .filter((item) => `${item.description} ${item.source} ${scopeLabel(item.scope)} ${kindLabel(item.kind)}`.toLowerCase().includes(query))
+    .filter((item) => `${item.description} ${item.source} ${item.product || ""} ${scopeLabel(item.scope)} ${kindLabel(item.kind)}`.toLowerCase().includes(query))
     .sort((a, b) => b.date.localeCompare(a.date) || b.created_at.localeCompare(a.created_at));
   renderTransactions(els.allTransactionsList, items, "Sem lancamentos no mes selecionado.");
 }
@@ -607,6 +621,19 @@ function groupBySource(items, kind) {
   items
     .filter((item) => item.kind === kind)
     .forEach((item) => grouped.set(item.source, (grouped.get(item.source) || 0) + item.amount));
+  return [...grouped.entries()]
+    .map(([source, total]) => ({ source, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+function groupByProduct(items) {
+  const grouped = new Map();
+  items
+    .filter((item) => item.kind === "income")
+    .forEach((item) => {
+      const product = item.product || "Sem produto";
+      grouped.set(product, (grouped.get(product) || 0) + item.amount);
+    });
   return [...grouped.entries()]
     .map(([source, total]) => ({ source, total }))
     .sort((a, b) => b.total - a.total);
@@ -674,8 +701,13 @@ function renderPieChart(pieEl, legendEl, totalEl, groups, emptyLabel, colors, ch
 
 function renderCharts() {
   const items = monthlyTransactions();
+  const scope = activeScope();
+  els.productChartCard.hidden = scope !== "business";
   renderPieChart(els.incomePie, els.incomeChartLegend, els.incomeChartTotal, groupBySource(items, "income"), "Entradas", incomeChartColors, "income");
   renderPieChart(els.expensePie, els.expenseChartLegend, els.expenseChartTotal, groupBySource(items, "expense"), "Saidas", expenseChartColors, "expense");
+  if (scope === "business") {
+    renderPieChart(els.productPie, els.productChartLegend, els.productChartTotal, groupByProduct(items), "Produtos", productChartColors, "product");
+  }
 }
 
 function renderMonthlyBreakdown() {
@@ -759,6 +791,7 @@ function renderAll() {
   els.expenseTransactionForm.dataset.scope = scope;
   els.viewTitle.textContent = scope === "business" ? "Visao Estrategica" : "Visao Vida";
   els.viewEyebrow.textContent = scope === "business" ? "Empresa no mes civil" : "Pessoal no mes civil";
+  els.productField.hidden = scope !== "business";
   updateInstallmentVisibility();
 
   updateSourceControls();
@@ -790,6 +823,7 @@ function addTransaction(data) {
     description: data.description,
     scope: data.scope || state.view,
     source: data.source || els.quickSource.value,
+    product: data.product || null,
     kind: data.kind || "expense",
     installment_id: data.installment_id,
     installment_number: data.installment_number,
@@ -868,6 +902,7 @@ function createTransaction(event) {
     description,
     scope,
     source: form.get("source"),
+    product: kind === "income" && scope === "business" ? form.get("product") : null,
     kind,
   });
   resetEntryForms();
@@ -887,6 +922,7 @@ function createQuickTransaction(event) {
     date: todayISO(),
     scope: event.currentTarget.dataset.scope || activeScope(),
     source,
+    product: event.currentTarget.dataset.kind === "income" && activeScope() === "business" ? els.entryProduct.value : null,
     kind: event.currentTarget.dataset.kind || "expense",
   });
   resetEntryForms();
@@ -930,6 +966,8 @@ function openEditDialog(id) {
   form.elements.kind.value = item.kind;
   form.elements.scope.value = item.scope;
   fillSelect(form.elements.source, sourceOptionsFor(item), item.source);
+  fillSelect(form.elements.product, productOptions, item.product || productOptions[0]);
+  document.querySelector("#editProductField").hidden = !(item.kind === "income" && item.scope === "business");
   if (typeof els.editDialog.showModal === "function") {
     els.editDialog.showModal();
   } else {
@@ -951,6 +989,8 @@ function updateEditSourceOptions() {
   if (!current) return;
   const draft = { ...current, kind: els.editForm.elements.kind.value, scope: els.editForm.elements.scope.value };
   fillSelect(els.editForm.elements.source, sourceOptionsFor(draft), els.editForm.elements.source.value);
+  fillSelect(els.editForm.elements.product, productOptions, current.product || productOptions[0]);
+  document.querySelector("#editProductField").hidden = !(draft.kind === "income" && draft.scope === "business");
 }
 
 function saveEdit(event) {
@@ -972,6 +1012,7 @@ function saveEdit(event) {
       kind: form.get("kind"),
       scope: form.get("scope"),
       source: form.get("source"),
+      product: form.get("kind") === "income" && form.get("scope") === "business" ? form.get("product") : null,
     });
     return updatedRecord;
   });
@@ -1079,6 +1120,7 @@ function setInitialDates() {
   els.transactionForm.elements.date.value = todayISO();
   els.expenseTransactionForm.elements.date.value = todayISO();
   els.invoiceForm.elements.dueDate.value = todayISO();
+  fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
   syncSourceDefaults();
   updateInstallmentVisibility();
 }
@@ -1094,6 +1136,7 @@ function resetEntryForms() {
 
   els.transactionForm.elements.date.value = todayISO();
   els.expenseTransactionForm.elements.date.value = todayISO();
+  fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
   els.expenseTransactionForm.elements.isInstallment.checked = false;
   els.expenseTransactionForm.elements.installmentTotal.value = "";
   els.expenseTransactionForm.elements.installmentCount.value = "";
@@ -1154,10 +1197,12 @@ function syncSourceDefaults() {
 function updateSourceControls() {
   const currentQuickSource = els.quickSource.value;
   const currentExpenseQuickSource = els.expenseQuickSource.value;
+  const currentProduct = els.entryProduct.value;
   const scope = activeScope();
   const viewSources = [...new Set([...sourceOptionsByKind.income[scope], ...sourceOptionsByKind.expense[scope]])];
   fillSelect(els.quickSource, sourceOptionsByKind.income[scope], currentQuickSource);
   fillSelect(els.expenseQuickSource, sourceOptionsByKind.expense[scope], currentExpenseQuickSource);
+  fillSelect(els.entryProduct, productOptions, currentProduct);
   fillSelect(els.sourceFilter, ["Todas as origens", ...viewSources], els.sourceFilter.value === "all" ? "Todas as origens" : els.sourceFilter.value);
   els.sourceFilter.options[0].value = "all";
   syncSourceDefaults();

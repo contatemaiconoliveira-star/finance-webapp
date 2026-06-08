@@ -8,7 +8,7 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260606-clear-forms" />
+    <link rel="stylesheet" href="styles.css?v=20260608-product-revenue" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
@@ -157,6 +157,11 @@
                   Descricao ou tag
                   <input name="description" required placeholder="Venda, mentoria, asaas" />
                 </label>
+                <label id="productField" class="wide">
+                  Produto
+                  <select name="product" id="entryProduct">
+                  </select>
+                </label>
                 <label class="wide">
                   Origem
                   <select name="source">
@@ -273,6 +278,16 @@
               <div class="pie-layout">
                 <div id="expensePie" class="pie-chart" role="img" aria-label="Grafico de saidas por origem"></div>
                 <div id="expenseChartLegend" class="chart-legend"></div>
+              </div>
+            </article>
+            <article id="productChartCard" class="chart-card product-chart-card">
+              <div class="chart-heading">
+                <p class="eyebrow">Entradas por produto</p>
+                <strong id="productChartTotal">R$ 0,00</strong>
+              </div>
+              <div class="pie-layout">
+                <div id="productPie" class="pie-chart" role="img" aria-label="Grafico de entradas por produto"></div>
+                <div id="productChartLegend" class="chart-legend"></div>
               </div>
             </article>
           </div>
@@ -412,6 +427,10 @@
             Origem
             <select name="source"></select>
           </label>
+          <label id="editProductField">
+            Produto
+            <select name="product"></select>
+          </label>
         </div>
         <div class="edit-actions">
           <button class="ghost-button" type="button" id="cancelEditButton">Cancelar</button>
@@ -420,6 +439,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=20260606-clear-forms"></script>
+    <script src="app.js?v=20260608-product-revenue"></script>
   </body>
 </html>

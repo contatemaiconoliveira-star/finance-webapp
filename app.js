@@ -302,12 +302,14 @@ function fromDbInvoice(item) {
 }
 
 async function loadRemote() {
+  const localTransactions = [...state.transactions];
+  const localInvoices = [...state.invoices];
   const [transactions, invoices] = await Promise.all([
     supabaseRequest("finance_transactions?select=*&order=transaction_date.desc,created_at.desc"),
     supabaseRequest("finance_invoice_checks?select=*&order=created_at.desc"),
   ]);
-  state.transactions = transactions.map(fromDbTransaction);
-  state.invoices = invoices.map(fromDbInvoice);
+  state.transactions = mergeRecords(transactions.map(fromDbTransaction), localTransactions);
+  state.invoices = mergeRecords(invoices.map(fromDbInvoice), localInvoices);
   state.remoteReady = true;
   saveLocal();
   els.storageStatus.textContent = "Supabase conectado";
@@ -318,6 +320,7 @@ async function loadData() {
     state.remoteReady = false;
     return;
   }
+  loadLocalFallback();
   try {
     await loadRemote();
   } catch (error) {
@@ -326,6 +329,28 @@ async function loadData() {
     console.warn("Supabase indisponivel:", error.message);
     throw error;
   }
+}
+
+function mergeRecords(remoteRecords, localRecords) {
+  const merged = new Map();
+  remoteRecords.forEach((record) => merged.set(record.id, record));
+  localRecords.forEach((record) => {
+    const remoteRecord = merged.get(record.id);
+    merged.set(record.id, remoteRecord ? { ...remoteRecord, product: remoteRecord.product || record.product } : record);
+  });
+  return [...merged.values()].sort((a, b) => {
+    const dateA = a.date || a.created_at || "";
+    const dateB = b.date || b.created_at || "";
+    return dateB.localeCompare(dateA);
+  });
+}
+
+function isMissingProductColumn(error) {
+  return /product|column .* does not exist|42703/i.test(error?.message || "");
+}
+
+function updateRemoteFailureStatus(error) {
+  els.storageStatus.textContent = isMissingProductColumn(error) ? "Rode o schema.sql no Supabase" : "Salvo localmente";
 }
 
 async function insertRemoteTransactions(records) {
@@ -838,7 +863,7 @@ function addTransaction(data) {
   insertRemoteTransactions([record])
     .then(() => { els.storageStatus.textContent = "Supabase conectado"; })
     .catch((error) => {
-      els.storageStatus.textContent = "Salvo localmente";
+      updateRemoteFailureStatus(error);
       console.warn("Falha ao salvar no Supabase:", error.message);
     });
 }
@@ -856,7 +881,7 @@ function addTransactions(records) {
   insertRemoteTransactions(normalized)
     .then(() => { els.storageStatus.textContent = "Supabase conectado"; })
     .catch((error) => {
-      els.storageStatus.textContent = "Salvo localmente";
+      updateRemoteFailureStatus(error);
       console.warn("Falha ao salvar parcelas no Supabase:", error.message);
     });
 }
@@ -1021,7 +1046,10 @@ function saveEdit(event) {
   closeEditDialog();
   renderAll();
   if (updatedRecord) {
-    updateRemoteTransaction(updatedRecord).catch((error) => console.warn("Falha ao atualizar no Supabase:", error.message));
+    updateRemoteTransaction(updatedRecord).catch((error) => {
+      updateRemoteFailureStatus(error);
+      console.warn("Falha ao atualizar no Supabase:", error.message);
+    });
   }
 }
 

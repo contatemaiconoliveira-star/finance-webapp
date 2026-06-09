@@ -24,6 +24,17 @@ const sourceOptions = [
 ];
 
 const productOptions = ["Mentoria individual", "Desafio Sou Segura", "Amor Seguro", "Dignas"];
+const personalExpenseCategories = [
+  "Moradia",
+  "Mercado",
+  "Assinaturas",
+  "Saude",
+  "Autocuidado",
+  "Vestuario",
+  "Restaurantes/delivery",
+  "Lazer",
+  "Pet",
+];
 
 const supabaseConfig = {
   url: "https://ezaehjggbgapbeyceinb.supabase.co",
@@ -68,6 +79,8 @@ const els = {
   transactionForm: document.querySelector("#transactionForm"),
   productField: document.querySelector("#productField"),
   entryProduct: document.querySelector("#entryProduct"),
+  expenseCategoryField: document.querySelector("#expenseCategoryField"),
+  expenseCategory: document.querySelector("#expenseCategory"),
   expenseTransactionForm: document.querySelector("#expenseTransactionForm"),
   quickForm: document.querySelector("#quickForm"),
   expenseQuickForm: document.querySelector("#expenseQuickForm"),
@@ -82,13 +95,17 @@ const els = {
   incomePie: document.querySelector("#incomePie"),
   expensePie: document.querySelector("#expensePie"),
   productPie: document.querySelector("#productPie"),
+  categoryPie: document.querySelector("#categoryPie"),
   productChartCard: document.querySelector("#productChartCard"),
+  categoryChartCard: document.querySelector("#categoryChartCard"),
   incomeChartLegend: document.querySelector("#incomeChartLegend"),
   expenseChartLegend: document.querySelector("#expenseChartLegend"),
   productChartLegend: document.querySelector("#productChartLegend"),
+  categoryChartLegend: document.querySelector("#categoryChartLegend"),
   incomeChartTotal: document.querySelector("#incomeChartTotal"),
   expenseChartTotal: document.querySelector("#expenseChartTotal"),
   productChartTotal: document.querySelector("#productChartTotal"),
+  categoryChartTotal: document.querySelector("#categoryChartTotal"),
   incomeTransactionsList: document.querySelector("#incomeTransactionsList"),
   expenseTransactionsList: document.querySelector("#expenseTransactionsList"),
   incomeListTotal: document.querySelector("#incomeListTotal"),
@@ -113,6 +130,7 @@ const monthNames = Array.from({ length: 12 }, (_, index) =>
 const incomeChartColors = ["#34d399", "#60a5fa", "#22d3ee", "#a78bfa", "#fbbf24", "#4ade80"];
 const expenseChartColors = ["#ef4444", "#f97316", "#ec4899", "#7f1d1d", "#facc15", "#be123c"];
 const productChartColors = ["#34d399", "#60a5fa", "#a78bfa", "#fbbf24", "#22d3ee"];
+const categoryChartColors = ["#ef4444", "#f97316", "#f59e0b", "#ec4899", "#a855f7", "#60a5fa", "#14b8a6", "#84cc16", "#f43f5e"];
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -258,6 +276,7 @@ function toDbTransaction(item) {
     scope: item.scope,
     source: item.source,
     product: item.product,
+    category: item.category,
     kind: item.kind,
     installment_id: item.installment_id,
     installment_number: item.installment_number,
@@ -276,6 +295,7 @@ function fromDbTransaction(item) {
     scope: item.scope,
     source: item.source,
     product: item.product,
+    category: item.category,
     kind: item.kind,
     installment_id: item.installment_id,
     installment_number: item.installment_number,
@@ -336,7 +356,7 @@ function mergeRecords(remoteRecords, localRecords) {
   remoteRecords.forEach((record) => merged.set(record.id, record));
   localRecords.forEach((record) => {
     const remoteRecord = merged.get(record.id);
-    merged.set(record.id, remoteRecord ? { ...remoteRecord, product: remoteRecord.product || record.product } : record);
+    merged.set(record.id, remoteRecord ? { ...remoteRecord, product: remoteRecord.product || record.product, category: remoteRecord.category || record.category } : record);
   });
   return [...merged.values()].sort((a, b) => {
     const dateA = a.date || a.created_at || "";
@@ -345,12 +365,12 @@ function mergeRecords(remoteRecords, localRecords) {
   });
 }
 
-function isMissingProductColumn(error) {
-  return /product|column .* does not exist|42703/i.test(error?.message || "");
+function isMissingOptionalColumn(error) {
+  return /product|category|column .* does not exist|42703/i.test(error?.message || "");
 }
 
 function updateRemoteFailureStatus(error) {
-  els.storageStatus.textContent = isMissingProductColumn(error) ? "Rode o schema.sql no Supabase" : "Salvo localmente";
+  els.storageStatus.textContent = isMissingOptionalColumn(error) ? "Rode o schema.sql no Supabase" : "Salvo localmente";
 }
 
 async function insertRemoteTransactions(records) {
@@ -409,6 +429,7 @@ function normalizeTransaction(item) {
     scope,
     source,
     product: item.product || null,
+    category: item.category || null,
     kind,
     installment_id: item.installment_id || null,
     installment_number: Number(item.installment_number) || null,
@@ -598,6 +619,7 @@ function transactionSubtitle(item) {
     scopeLabel(item.scope),
     item.source,
     item.product,
+    item.category,
     kindLabel(item.kind),
   ].filter(Boolean);
   return parts.join(" | ");
@@ -629,7 +651,7 @@ function renderAllTransactions() {
   const items = state.transactions
     .filter((item) => belongsToScope(item, scope))
     .filter((item) => monthKey(item.date) === activeMonthKey())
-    .filter((item) => `${item.description} ${item.source} ${item.product || ""} ${scopeLabel(item.scope)} ${kindLabel(item.kind)}`.toLowerCase().includes(query))
+    .filter((item) => `${item.description} ${item.source} ${item.product || ""} ${item.category || ""} ${scopeLabel(item.scope)} ${kindLabel(item.kind)}`.toLowerCase().includes(query))
     .sort((a, b) => b.date.localeCompare(a.date) || b.created_at.localeCompare(a.created_at));
   renderTransactions(els.allTransactionsList, items, "Sem lancamentos no mes selecionado.");
 }
@@ -658,6 +680,19 @@ function groupByProduct(items) {
     .forEach((item) => {
       const product = item.product || "Sem produto";
       grouped.set(product, (grouped.get(product) || 0) + item.amount);
+    });
+  return [...grouped.entries()]
+    .map(([source, total]) => ({ source, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+function groupByCategory(items) {
+  const grouped = new Map();
+  items
+    .filter((item) => item.kind === "expense")
+    .forEach((item) => {
+      const category = item.category || "Sem categoria";
+      grouped.set(category, (grouped.get(category) || 0) + item.amount);
     });
   return [...grouped.entries()]
     .map(([source, total]) => ({ source, total }))
@@ -728,10 +763,14 @@ function renderCharts() {
   const items = monthlyTransactions();
   const scope = activeScope();
   els.productChartCard.hidden = scope !== "business";
+  els.categoryChartCard.hidden = scope !== "personal";
   renderPieChart(els.incomePie, els.incomeChartLegend, els.incomeChartTotal, groupBySource(items, "income"), "Entradas", incomeChartColors, "income");
   renderPieChart(els.expensePie, els.expenseChartLegend, els.expenseChartTotal, groupBySource(items, "expense"), "Saidas", expenseChartColors, "expense");
   if (scope === "business") {
     renderPieChart(els.productPie, els.productChartLegend, els.productChartTotal, groupByProduct(items), "Produtos", productChartColors, "product");
+  }
+  if (scope === "personal") {
+    renderPieChart(els.categoryPie, els.categoryChartLegend, els.categoryChartTotal, groupByCategory(items), "Categorias", categoryChartColors, "category");
   }
 }
 
@@ -817,6 +856,7 @@ function renderAll() {
   els.viewTitle.textContent = scope === "business" ? "Visao Estrategica" : "Visao Vida";
   els.viewEyebrow.textContent = scope === "business" ? "Empresa no mes civil" : "Pessoal no mes civil";
   els.productField.hidden = scope !== "business";
+  els.expenseCategoryField.hidden = scope !== "personal";
   updateInstallmentVisibility();
 
   updateSourceControls();
@@ -849,6 +889,7 @@ function addTransaction(data) {
     scope: data.scope || state.view,
     source: data.source || els.quickSource.value,
     product: data.product || null,
+    category: data.category || null,
     kind: data.kind || "expense",
     installment_id: data.installment_id,
     installment_number: data.installment_number,
@@ -910,6 +951,7 @@ function createTransaction(event) {
       description: `${description} (${index + 1}/${count})`,
       scope,
       source: form.get("source"),
+      category: personalExpenseCategoryValue(scope, kind, form.get("category")),
       kind,
       installment_id: installmentId,
       installment_number: index + 1,
@@ -928,6 +970,7 @@ function createTransaction(event) {
     scope,
     source: form.get("source"),
     product: kind === "income" && scope === "business" ? form.get("product") : null,
+    category: personalExpenseCategoryValue(scope, kind, form.get("category")),
     kind,
   });
   resetEntryForms();
@@ -948,6 +991,7 @@ function createQuickTransaction(event) {
     scope: event.currentTarget.dataset.scope || activeScope(),
     source,
     product: event.currentTarget.dataset.kind === "income" && activeScope() === "business" ? els.entryProduct.value : null,
+    category: personalExpenseCategoryValue(event.currentTarget.dataset.scope || activeScope(), event.currentTarget.dataset.kind || "expense", els.expenseCategory.value),
     kind: event.currentTarget.dataset.kind || "expense",
   });
   resetEntryForms();
@@ -980,6 +1024,15 @@ function sourceOptionsFor(item) {
   return sourceOptionsByKind[item.kind]?.[item.scope] || sourceOptionsByScope[item.scope] || sourceOptionsByScope.personal;
 }
 
+function personalExpenseCategoryValue(scope, kind, value) {
+  if (scope !== "personal" || kind !== "expense") return null;
+  return personalExpenseCategories.includes(value) ? value : personalExpenseCategories[0];
+}
+
+function shouldShowCategoryField(kind, scope) {
+  return kind === "expense" && scope === "personal";
+}
+
 function openEditDialog(id) {
   const item = state.transactions.find((transaction) => transaction.id === id);
   if (!item) return;
@@ -992,7 +1045,9 @@ function openEditDialog(id) {
   form.elements.scope.value = item.scope;
   fillSelect(form.elements.source, sourceOptionsFor(item), item.source);
   fillSelect(form.elements.product, productOptions, item.product || productOptions[0]);
+  fillSelect(form.elements.category, personalExpenseCategories, item.category || personalExpenseCategories[0]);
   document.querySelector("#editProductField").hidden = !(item.kind === "income" && item.scope === "business");
+  document.querySelector("#editCategoryField").hidden = !shouldShowCategoryField(item.kind, item.scope);
   if (typeof els.editDialog.showModal === "function") {
     els.editDialog.showModal();
   } else {
@@ -1015,7 +1070,9 @@ function updateEditSourceOptions() {
   const draft = { ...current, kind: els.editForm.elements.kind.value, scope: els.editForm.elements.scope.value };
   fillSelect(els.editForm.elements.source, sourceOptionsFor(draft), els.editForm.elements.source.value);
   fillSelect(els.editForm.elements.product, productOptions, current.product || productOptions[0]);
+  fillSelect(els.editForm.elements.category, personalExpenseCategories, current.category || personalExpenseCategories[0]);
   document.querySelector("#editProductField").hidden = !(draft.kind === "income" && draft.scope === "business");
+  document.querySelector("#editCategoryField").hidden = !shouldShowCategoryField(draft.kind, draft.scope);
 }
 
 function saveEdit(event) {
@@ -1038,6 +1095,7 @@ function saveEdit(event) {
       scope: form.get("scope"),
       source: form.get("source"),
       product: form.get("kind") === "income" && form.get("scope") === "business" ? form.get("product") : null,
+      category: personalExpenseCategoryValue(form.get("scope"), form.get("kind"), form.get("category")),
     });
     return updatedRecord;
   });
@@ -1118,8 +1176,8 @@ function loadSeedData() {
     normalizeTransaction({ date: now, amount: 850, description: "Marketing", scope: "business", source: "Boleto", kind: "expense" }),
     normalizeTransaction({ date: now, amount: 129, description: "Software", scope: "business", source: "Asaas", kind: "expense" }),
     normalizeTransaction({ date: now, amount: 4200, description: "Venda mentoria", scope: "business", source: "Eduzz", kind: "income" }),
-    normalizeTransaction({ date: now, amount: 380, description: "Supermercado", scope: "personal", source: "Cartao A", kind: "expense" }),
-    normalizeTransaction({ date: now, amount: 74, description: "Almoco", scope: "personal", source: "Pix", kind: "expense" }),
+    normalizeTransaction({ date: now, amount: 380, description: "Supermercado", scope: "personal", source: "Cartao A", category: "Mercado", kind: "expense" }),
+    normalizeTransaction({ date: now, amount: 74, description: "Almoco", scope: "personal", source: "Pix", category: "Restaurantes/delivery", kind: "expense" }),
   ];
   state.invoices = [];
   saveLocal();
@@ -1149,6 +1207,7 @@ function setInitialDates() {
   els.expenseTransactionForm.elements.date.value = todayISO();
   els.invoiceForm.elements.dueDate.value = todayISO();
   fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
+  fillSelect(els.expenseCategory, personalExpenseCategories, els.expenseCategory.value || personalExpenseCategories[0]);
   syncSourceDefaults();
   updateInstallmentVisibility();
 }
@@ -1165,6 +1224,7 @@ function resetEntryForms() {
   els.transactionForm.elements.date.value = todayISO();
   els.expenseTransactionForm.elements.date.value = todayISO();
   fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
+  fillSelect(els.expenseCategory, personalExpenseCategories, personalExpenseCategories[0]);
   els.expenseTransactionForm.elements.isInstallment.checked = false;
   els.expenseTransactionForm.elements.installmentTotal.value = "";
   els.expenseTransactionForm.elements.installmentCount.value = "";
@@ -1226,11 +1286,13 @@ function updateSourceControls() {
   const currentQuickSource = els.quickSource.value;
   const currentExpenseQuickSource = els.expenseQuickSource.value;
   const currentProduct = els.entryProduct.value;
+  const currentCategory = els.expenseCategory.value;
   const scope = activeScope();
   const viewSources = [...new Set([...sourceOptionsByKind.income[scope], ...sourceOptionsByKind.expense[scope]])];
   fillSelect(els.quickSource, sourceOptionsByKind.income[scope], currentQuickSource);
   fillSelect(els.expenseQuickSource, sourceOptionsByKind.expense[scope], currentExpenseQuickSource);
   fillSelect(els.entryProduct, productOptions, currentProduct);
+  fillSelect(els.expenseCategory, personalExpenseCategories, currentCategory);
   fillSelect(els.sourceFilter, ["Todas as origens", ...viewSources], els.sourceFilter.value === "all" ? "Todas as origens" : els.sourceFilter.value);
   els.sourceFilter.options[0].value = "all";
   syncSourceDefaults();

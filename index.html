@@ -8,7 +8,7 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260608-product-save-fix" />
+    <link rel="stylesheet" href="styles.css?v=20260609-personal-categories" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
@@ -207,6 +207,11 @@
                   Descricao ou tag
                   <input name="description" required placeholder="Marketing, software, supermercado" />
                 </label>
+                <label id="expenseCategoryField" class="wide">
+                  Categoria do gasto
+                  <select name="category" id="expenseCategory">
+                  </select>
+                </label>
                 <label class="wide">
                   Origem
                   <select name="source">
@@ -288,6 +293,16 @@
               <div class="pie-layout">
                 <div id="productPie" class="pie-chart" role="img" aria-label="Grafico de entradas por produto"></div>
                 <div id="productChartLegend" class="chart-legend"></div>
+              </div>
+            </article>
+            <article id="categoryChartCard" class="chart-card category-chart-card">
+              <div class="chart-heading">
+                <p class="eyebrow">Gastos por categoria</p>
+                <strong id="categoryChartTotal">R$ 0,00</strong>
+              </div>
+              <div class="pie-layout">
+                <div id="categoryPie" class="pie-chart" role="img" aria-label="Grafico de gastos pessoais por categoria"></div>
+                <div id="categoryChartLegend" class="chart-legend"></div>
               </div>
             </article>
           </div>
@@ -431,6 +446,10 @@
             Produto
             <select name="product"></select>
           </label>
+          <label id="editCategoryField">
+            Categoria do gasto
+            <select name="category"></select>
+          </label>
         </div>
         <div class="edit-actions">
           <button class="ghost-button" type="button" id="cancelEditButton">Cancelar</button>
@@ -439,6 +458,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=20260608-product-save-fix"></script>
+    <script src="app.js?v=20260609-personal-categories"></script>
   </body>
 </html>

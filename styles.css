@@ -1020,6 +1020,10 @@ select:focus {
   border-color: rgba(96, 165, 250, 0.24);
 }
 
+.category-chart-card {
+  border-color: rgba(248, 113, 113, 0.24);
+}
+
 .monthly-breakdown {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1140,6 +1144,10 @@ select:focus {
 }
 
 .expense-chart-card .legend-row.active-chart-item {
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+.category-chart-card .legend-row.active-chart-item {
   border-color: rgba(248, 113, 113, 0.42);
 }
 

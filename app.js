@@ -33,6 +33,7 @@ const personalExpenseCategories = [
   "Vestuario",
   "Restaurantes/delivery",
   "Lazer",
+  "Transporte",
   "Pet",
 ];
 
@@ -130,7 +131,7 @@ const monthNames = Array.from({ length: 12 }, (_, index) =>
 const incomeChartColors = ["#34d399", "#60a5fa", "#22d3ee", "#a78bfa", "#fbbf24", "#4ade80"];
 const expenseChartColors = ["#ef4444", "#f97316", "#ec4899", "#7f1d1d", "#facc15", "#be123c"];
 const productChartColors = ["#34d399", "#60a5fa", "#a78bfa", "#fbbf24", "#22d3ee"];
-const categoryChartColors = ["#ef4444", "#f97316", "#f59e0b", "#ec4899", "#a855f7", "#60a5fa", "#14b8a6", "#84cc16", "#f43f5e"];
+const categoryChartColors = ["#ef4444", "#f97316", "#f59e0b", "#ec4899", "#a855f7", "#60a5fa", "#14b8a6", "#84cc16", "#38bdf8", "#f43f5e"];
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);

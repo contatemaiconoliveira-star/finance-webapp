@@ -83,10 +83,6 @@ const els = {
   expenseCategoryField: document.querySelector("#expenseCategoryField"),
   expenseCategory: document.querySelector("#expenseCategory"),
   expenseTransactionForm: document.querySelector("#expenseTransactionForm"),
-  quickForm: document.querySelector("#quickForm"),
-  expenseQuickForm: document.querySelector("#expenseQuickForm"),
-  quickSource: document.querySelector("#quickSource"),
-  expenseQuickSource: document.querySelector("#expenseQuickSource"),
   invoiceForm: document.querySelector("#invoiceForm"),
   transactionsList: document.querySelector("#transactionsList"),
   allTransactionsList: document.querySelector("#allTransactionsList"),
@@ -850,9 +846,7 @@ function renderAll() {
   els.scopeBanner.innerHTML = scope === "business"
     ? "<span>Visao ativa</span><strong>Voce esta lancando em: Empresa</strong>"
     : "<span>Visao ativa</span><strong>Voce esta lancando em: Pessoal</strong>";
-  els.quickForm.dataset.scope = scope;
   els.transactionForm.dataset.scope = scope;
-  els.expenseQuickForm.dataset.scope = scope;
   els.expenseTransactionForm.dataset.scope = scope;
   els.viewTitle.textContent = scope === "business" ? "Visao Estrategica" : "Visao Vida";
   els.viewEyebrow.textContent = scope === "business" ? "Empresa no mes civil" : "Pessoal no mes civil";
@@ -872,15 +866,6 @@ function renderAll() {
   renderInvoices();
 }
 
-function quickParse(text) {
-  const match = String(text || "").trim().match(/^(-?\d+(?:[.,]\d{1,2})?)\s+(.+)$/);
-  if (!match) return null;
-  const amount = parseMoney(match[1]);
-  const description = match[2].trim();
-  if (!amount || !description) return null;
-  return { amount, description };
-}
-
 function addTransaction(data) {
   const record = normalizeTransaction({
     id: createId(),
@@ -888,7 +873,7 @@ function addTransaction(data) {
     amount: data.amount,
     description: data.description,
     scope: data.scope || state.view,
-    source: data.source || els.quickSource.value,
+    source: data.source || els.transactionForm.elements.source.value,
     product: data.product || null,
     category: data.category || null,
     kind: data.kind || "expense",
@@ -975,28 +960,6 @@ function createTransaction(event) {
     kind,
   });
   resetEntryForms();
-}
-
-function createQuickTransaction(event) {
-  event.preventDefault();
-  const input = event.currentTarget.elements.quick;
-  const source = event.currentTarget.closest(".panel").querySelector("select").value;
-  const parsed = quickParse(input.value);
-  if (!parsed) {
-    input.focus();
-    return;
-  }
-  addTransaction({
-    ...parsed,
-    date: todayISO(),
-    scope: event.currentTarget.dataset.scope || activeScope(),
-    source,
-    product: event.currentTarget.dataset.kind === "income" && activeScope() === "business" ? els.entryProduct.value : null,
-    category: personalExpenseCategoryValue(event.currentTarget.dataset.scope || activeScope(), event.currentTarget.dataset.kind || "expense", els.expenseCategory.value),
-    kind: event.currentTarget.dataset.kind || "expense",
-  });
-  resetEntryForms();
-  input.focus();
 }
 
 function createInvoice(event) {
@@ -1204,9 +1167,6 @@ function escapeHtml(value) {
 }
 
 function setInitialDates() {
-  els.transactionForm.elements.date.value = todayISO();
-  els.expenseTransactionForm.elements.date.value = todayISO();
-  els.invoiceForm.elements.dueDate.value = todayISO();
   fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
   fillSelect(els.expenseCategory, personalExpenseCategories, els.expenseCategory.value || personalExpenseCategories[0]);
   syncSourceDefaults();
@@ -1214,16 +1174,9 @@ function setInitialDates() {
 }
 
 function resetEntryForms() {
-  els.quickForm.reset();
-  els.expenseQuickForm.reset();
   els.transactionForm.reset();
   els.expenseTransactionForm.reset();
 
-  if (els.quickSource.options.length) els.quickSource.selectedIndex = 0;
-  if (els.expenseQuickSource.options.length) els.expenseQuickSource.selectedIndex = 0;
-
-  els.transactionForm.elements.date.value = todayISO();
-  els.expenseTransactionForm.elements.date.value = todayISO();
   fillSelect(els.entryProduct, productOptions, els.entryProduct.value || productOptions[0]);
   fillSelect(els.expenseCategory, personalExpenseCategories, personalExpenseCategories[0]);
   els.expenseTransactionForm.elements.isInstallment.checked = false;
@@ -1278,20 +1231,19 @@ function syncSourceDefaults() {
   const transactionScope = activeScope();
   const expenseScope = activeScope();
   const invoiceScope = els.invoiceForm.dataset.scope || "business";
-  fillSelect(els.transactionForm.elements.source, sourceOptionsByKind.income[transactionScope], els.quickSource.value);
-  fillSelect(els.expenseTransactionForm.elements.source, sourceOptionsByKind.expense[expenseScope], els.expenseQuickSource.value);
-  fillSelect(els.invoiceForm.elements.source, sourceOptionsByScope[invoiceScope], els.quickSource.value);
+  const currentIncomeSource = els.transactionForm.elements.source.value;
+  const currentExpenseSource = els.expenseTransactionForm.elements.source.value;
+  const currentInvoiceSource = els.invoiceForm.elements.source.value;
+  fillSelect(els.transactionForm.elements.source, sourceOptionsByKind.income[transactionScope], currentIncomeSource);
+  fillSelect(els.expenseTransactionForm.elements.source, sourceOptionsByKind.expense[expenseScope], currentExpenseSource);
+  fillSelect(els.invoiceForm.elements.source, sourceOptionsByScope[invoiceScope], currentInvoiceSource);
 }
 
 function updateSourceControls() {
-  const currentQuickSource = els.quickSource.value;
-  const currentExpenseQuickSource = els.expenseQuickSource.value;
   const currentProduct = els.entryProduct.value;
   const currentCategory = els.expenseCategory.value;
   const scope = activeScope();
   const viewSources = [...new Set([...sourceOptionsByKind.income[scope], ...sourceOptionsByKind.expense[scope]])];
-  fillSelect(els.quickSource, sourceOptionsByKind.income[scope], currentQuickSource);
-  fillSelect(els.expenseQuickSource, sourceOptionsByKind.expense[scope], currentExpenseQuickSource);
   fillSelect(els.entryProduct, productOptions, currentProduct);
   fillSelect(els.expenseCategory, personalExpenseCategories, currentCategory);
   fillSelect(els.sourceFilter, ["Todas as origens", ...viewSources], els.sourceFilter.value === "all" ? "Todas as origens" : els.sourceFilter.value);
@@ -1386,11 +1338,7 @@ function bindEvents() {
       renderAll();
     });
   });
-  els.quickSource.addEventListener("change", syncSourceDefaults);
-  els.expenseQuickSource.addEventListener("change", syncSourceDefaults);
   els.expenseTransactionForm.elements.isInstallment.addEventListener("change", updateInstallmentVisibility);
-  els.quickForm.addEventListener("submit", createQuickTransaction);
-  els.expenseQuickForm.addEventListener("submit", createQuickTransaction);
   els.transactionForm.addEventListener("submit", createTransaction);
   els.expenseTransactionForm.addEventListener("submit", createTransaction);
   els.invoiceForm.addEventListener("submit", createInvoice);

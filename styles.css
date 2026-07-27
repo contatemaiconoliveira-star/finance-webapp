@@ -22,6 +22,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
@@ -51,6 +52,20 @@ button,
 input,
 select {
   font: inherit;
+}
+
+select {
+  color-scheme: dark;
+}
+
+select option {
+  color: #f8f7f2;
+  background: #151a22;
+}
+
+select option:checked {
+  color: #0a0e14;
+  background: #d4af37;
 }
 
 button,
@@ -1381,6 +1396,25 @@ select:focus {
   .transaction-row:hover {
     transform: none;
   }
+}
+
+/* Keep every native dropdown legible in the dark theme. */
+html,
+body,
+dialog,
+select {
+  color-scheme: dark;
+}
+
+select option,
+select optgroup {
+  color: #f8f7f2 !important;
+  background-color: #151a22 !important;
+}
+
+select option:checked {
+  color: #0a0e14 !important;
+  background-color: #d4af37 !important;
 }
 
 /* Dark Luxury refresh - visual layer only. Data bindings and form structure stay unchanged. */

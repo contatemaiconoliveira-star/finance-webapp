@@ -8,7 +8,7 @@
       name="description"
       content="WebApp de gestao financeira pessoal e empresarial com lancamento manual rapido e visao estrategica."
     />
-    <link rel="stylesheet" href="styles.css?v=20260727-dark-luxury-2" />
+    <link rel="stylesheet" href="styles.css?v=20260727-form-cleanup" />
   </head>
   <body>
     <section id="authScreen" class="auth-screen" aria-labelledby="authTitle">
@@ -130,23 +130,7 @@
                 <div>
                   <h2 id="entryTitle">ENTRADA</h2>
                 </div>
-                <div class="quick-source">
-                  <label>
-                    Origem
-                    <select id="quickSource" aria-label="Origem padrao de entrada">
-                    </select>
-                  </label>
-                </div>
               </div>
-
-              <form id="quickForm" class="quick-form" data-kind="income" data-scope="business">
-                <input
-                  name="quick"
-                  autocomplete="off"
-                  placeholder="100 venda"
-                  aria-label="Lancamento rapido de entrada: valor e descricao"
-                />
-              </form>
 
               <form id="transactionForm" class="form-grid" data-kind="income" data-scope="business">
                 <label>
@@ -155,11 +139,11 @@
                 </label>
                 <label>
                   Valor
-                  <input name="amount" required inputmode="decimal" placeholder="349,29" />
+                  <input name="amount" required inputmode="decimal" />
                 </label>
                 <label class="wide">
                   Descricao ou tag
-                  <input name="description" required placeholder="Venda, mentoria, asaas" />
+                  <input name="description" required />
                 </label>
                 <label id="productField" class="wide">
                   Produto
@@ -180,23 +164,7 @@
                 <div>
                   <h2 id="expenseTitle">SAIDA</h2>
                 </div>
-                <div class="quick-source">
-                  <label>
-                    Origem
-                    <select id="expenseQuickSource" aria-label="Origem padrao de saida">
-                    </select>
-                  </label>
-                </div>
               </div>
-
-              <form id="expenseQuickForm" class="quick-form" data-kind="expense" data-scope="business">
-                <input
-                  name="quick"
-                  autocomplete="off"
-                  placeholder="100 marketing"
-                  aria-label="Lancamento rapido de saida: valor e descricao"
-                />
-              </form>
 
               <form id="expenseTransactionForm" class="form-grid" data-kind="expense" data-scope="business">
                 <label>
@@ -205,11 +173,11 @@
                 </label>
                 <label>
                   Valor
-                  <input name="amount" required inputmode="decimal" placeholder="100,00" />
+                  <input name="amount" required inputmode="decimal" />
                 </label>
                 <label class="wide">
                   Descricao ou tag
-                  <input name="description" required placeholder="Marketing, software, supermercado" />
+                  <input name="description" required />
                 </label>
                 <label id="expenseCategoryField" class="wide">
                   Categoria do gasto
@@ -229,11 +197,11 @@
                   <div class="installment-fields" hidden>
                     <label>
                       Total da compra
-                      <input name="installmentTotal" inputmode="decimal" placeholder="349,29" />
+                      <input name="installmentTotal" inputmode="decimal" />
                     </label>
                     <label>
                       Parcelas
-                      <input name="installmentCount" inputmode="numeric" min="2" type="number" placeholder="6" />
+                      <input name="installmentCount" inputmode="numeric" min="2" type="number" />
                     </label>
                   </div>
                 </div>
@@ -462,6 +430,6 @@
       </form>
     </dialog>
 
-    <script src="app.js?v=20260727-dark-luxury-2"></script>
+    <script src="app.js?v=20260727-form-cleanup"></script>
   </body>
 </html>

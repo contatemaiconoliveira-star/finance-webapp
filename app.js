@@ -84,6 +84,8 @@ const els = {
   expenseCategory: document.querySelector("#expenseCategory"),
   expenseTransactionForm: document.querySelector("#expenseTransactionForm"),
   invoiceForm: document.querySelector("#invoiceForm"),
+  summaryPanel: document.querySelector(".summary-panel"),
+  invoiceSection: document.querySelector("#faturas"),
   transactionsList: document.querySelector("#transactionsList"),
   allTransactionsList: document.querySelector("#allTransactionsList"),
   directionCards: document.querySelector("#directionCards"),
@@ -858,12 +860,14 @@ function renderAll() {
   const items = currentScopeItems();
   renderKpis(items);
   renderBusinessYearPanel();
-  renderDirection(items);
-  renderTransactions(els.transactionsList, items, "Sem lancamentos nesta visao.");
+  if (!els.summaryPanel.hidden) {
+    renderDirection(items);
+    renderTransactions(els.transactionsList, items, "Sem lancamentos nesta visao.");
+  }
   renderAllTransactions();
   renderCharts();
   renderMonthlyBreakdown();
-  renderInvoices();
+  if (!els.invoiceSection.hidden) renderInvoices();
 }
 
 function addTransaction(data) {
@@ -1351,7 +1355,7 @@ function bindEvents() {
     if (event.target === els.editDialog) closeEditDialog();
   });
   els.sourceFilter.addEventListener("change", renderAll);
-  els.searchInput.addEventListener("input", renderAll);
+  els.searchInput.addEventListener("input", renderAllTransactions);
   document.addEventListener("click", handleDelete);
   document.addEventListener("click", handleEditClick);
   document.addEventListener("click", handleChartClick);

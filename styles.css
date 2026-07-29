@@ -2298,3 +2298,74 @@ select:focus {
     animation: none;
   }
 }
+
+/* Performance pass: retain the premium look without expensive full-card repaints. */
+body,
+body.business-mode,
+body.personal-mode {
+  background-attachment: scroll;
+}
+
+.period-card,
+.kpi,
+.panel,
+.chart-card,
+.breakdown-card,
+.year-highlight,
+.auth-wrap {
+  backdrop-filter: none;
+}
+
+.sidebar {
+  backdrop-filter: blur(8px);
+}
+
+.period-card,
+.panel,
+.chart-card,
+.breakdown-card,
+.year-highlight {
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.period-card:hover,
+.panel:hover,
+.chart-card:hover,
+.breakdown-card:hover,
+.personal-mode .period-card:hover,
+.personal-mode .panel:hover,
+.personal-mode .chart-card:hover,
+.personal-mode .breakdown-card:hover {
+  transform: none;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.18);
+}
+
+.kpi,
+.mode-button,
+.year-highlight {
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.kpi:hover,
+.year-highlight:hover,
+.personal-mode .kpi:hover,
+.personal-mode .year-highlight:hover {
+  transform: translateY(-2px) scale(1.003);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.2);
+}
+
+.transaction-row:hover,
+.year-row:hover {
+  transform: none;
+}
+
+.primary-button::after {
+  display: none;
+  animation: none;
+}
